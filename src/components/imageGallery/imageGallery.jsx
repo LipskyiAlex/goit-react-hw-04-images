@@ -1,13 +1,10 @@
-import { Component } from 'react';
+
 import css from './imageGallery.module.css';
 import ImageGalleryItem from '../imageGalleryItem/imageGalleryItem';
 
-export default class ImageGallery extends Component {
+const ImageGallery = ({hits}) =>  {
 
  
-  render() {
-
-    const { hits} = this.props;
 
     return hits.length > 0 ? (
       <div>
@@ -23,5 +20,6 @@ export default class ImageGallery extends Component {
         </ul>  
       </div>
     ) : null;
-  }
 }
+
+export default ImageGallery;

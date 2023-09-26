@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {useState, useEffect, useRef} from 'react';  
 import css from './App.module.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -10,65 +10,65 @@ import ImageGallery from './imageGallery/imageGallery';
 import Loader from './loader/loader';
 import Button from './button/button';
 
-export default class App extends Component {
-  state = {
-    query: '',
-    hits: [],
-    totalPages: 0,
-    pageCounter: 0,
-    status: 'idle',
+const App = () =>{
+
+     const [query,setQuery] = useState('');
+     const [hits,setHits] = useState([]);
+     const [totalPages,setTotalPages] = useState(0);
+     const [pageCounter,setPageCounter] = useState(0);
+     const [status, setStatus] = useState('idle');
+     
+     const isFirstRender = useRef(true);
+
+     useEffect(() => {
+
+           if(isFirstRender.current) {
+             console.log("Must be return");
+             console.log(isFirstRender.current);
+            isFirstRender.current = false;
+             return;
+           }
+
+           console.log("It shouldn't render");
+           console.log(isFirstRender.current);
+             setStatus("pending");
+             imageAPI(query,pageCounter)
+             .then(data => {
+              setHits(hits => [...hits,...data.hits]);
+              setTotalPages(Math.ceil(data.totalHits/12));
+              setStatus('resolved');
+             })
+             .catch(error => {
+              setStatus("rejected");
+              toast(error.message);
+             })
+
+     },[query,pageCounter])
+
+
+  const handleQuery = query => {
+        
+          setQuery(query);
+          setPageCounter(1);
+          setHits([]);
   };
 
-  componentDidUpdate = (prevProps, prevState) => {
-    const { query, pageCounter } = this.state;
-    const { query: prevQuery, pageCounter: prevPageCounter } = prevState;
+  const loadMorePages = () => {
 
-    if (query !== prevQuery || pageCounter !== prevPageCounter) {
-      this.setState({ status: 'pending' }, () => {
-        imageAPI(query, pageCounter)
-          .then(data => {
-            this.setState(prevState => ({
-              hits: [...prevState.hits, ...data.hits],
-              totalPages: Math.ceil(data.totalHits / 12),
-              status: 'resolved',
-            }));
-          })
-          .catch(error => {
-            this.setState({ status: 'rejected' });
-            toast(error.message);
-          });
-      });
-    }
-  };
-
-  handleQuery = query => {
-    this.setState({ query: query, pageCounter: 1, hits: [] });
-  };
-
-  loadMorePages = () => {
-    const { pageCounter, totalPages } = this.state;
     if (totalPages > pageCounter) {
-      this.setState(
-        prevState => ({
-          pageCounter: prevState.pageCounter + 1,
-          status: 'pending',
-        }),
-        () => {
-          if (this.state.pageCounter === this.state.totalPages) {
-            toast("This is all we've found!");
-          }
-        }
-      );
-    }
-  };
 
-  render() {
-    const { query, hits, status, pageCounter, totalPages } = this.state;
+        setStatus('pending');
+        setPageCounter(pageCounter => pageCounter + 1);
+  } else {
+
+    toast("This is all we've found");
+  }
+}
 
     if ((status === 'idle')) {
       return (
         <div className={css.app}>
-          <SearchBar handleQuery={this.handleQuery} />
+          <SearchBar handleQuery={handleQuery} />
         </div>
       );
     }
@@ -76,11 +76,11 @@ export default class App extends Component {
     if ((status  ==='pending')) {
       return (
         <div className={css.app}>
-          <SearchBar handleQuery={this.handleQuery} />
+          <SearchBar handleQuery={handleQuery} />
           <ImageGallery query={query} hits={hits} />
           <Loader />
           {pageCounter !== totalPages ? (
-            <Button loadMorePages={this.loadMorePages} />
+            <Button loadMorePages={loadMorePages} />
           ) : null}
 
           <ToastContainer
@@ -103,10 +103,10 @@ export default class App extends Component {
     if ((status === 'resolved')) {
       return (
         <div className={css.app}>
-          <SearchBar handleQuery={this.handleQuery} />
+          <SearchBar handleQuery={handleQuery} />
           <ImageGallery query={query} hits={hits} />
           {pageCounter !== totalPages ? (
-            <Button loadMorePages={this.loadMorePages} />
+            <Button loadMorePages={loadMorePages} />
           ) : null}
         </div>
       );
@@ -114,7 +114,7 @@ export default class App extends Component {
     if ((status === 'rejected')) {
       return (
         <div className={css.app}>
-          <SearchBar handleQuery={this.handleQuery} />
+          <SearchBar handleQuery={handleQuery} />
           <h1>Something went wrong</h1>
 
           <ToastContainer
@@ -134,4 +134,5 @@ export default class App extends Component {
       );
     }
   }
-}
+
+export default App;
