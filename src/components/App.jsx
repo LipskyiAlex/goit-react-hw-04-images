@@ -18,19 +18,13 @@ const App = () =>{
      const [pageCounter,setPageCounter] = useState(0);
      const [status, setStatus] = useState('idle');
      
-     const isFirstRender = useRef(true);
 
      useEffect(() => {
 
-           if(isFirstRender.current) {
-             console.log("Must be return");
-             console.log(isFirstRender.current);
-            isFirstRender.current = false;
-             return;
-           }
+              if(query === '') {
 
-           console.log("It shouldn't render");
-           console.log(isFirstRender.current);
+                return;
+              }
              setStatus("pending");
              imageAPI(query,pageCounter)
              .then(data => {
