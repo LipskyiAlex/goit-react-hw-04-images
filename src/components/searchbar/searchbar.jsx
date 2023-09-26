@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import css from './searchBar.module.css';
 import { throttle } from 'lodash';
 import 'react-toastify/dist/ReactToastify.css';
@@ -6,33 +6,33 @@ import 'react-toastify/dist/ReactToastify.css';
 import {FcGoogle} from 'react-icons/fc';
 import { ToastContainer, toast } from 'react-toastify';
 
-export default class SearchBar extends Component {
-  state = {
-    searchQuery: '',
-  
-  };
-  handleInput(e) {
-    this.setState({ searchQuery: e.target.value });
-  }
-  handleSubmit = throttle((e) =>  {
-    e.preventDefault();
-    const { searchQuery} = this.state;
+const SearchBar = ({handleQuery}) =>  {
 
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const handleInput = (e) =>  {
+
+    setSearchQuery(e.target.value);
+   
+  }
+  const handleSubmit = throttle((e) =>  {
+    e.preventDefault();
+  
     if (searchQuery.trim() === '') {
   
       toast("Search query can't be empty!");
 
       return;
     }
-    this.props.handleQuery(searchQuery.toLowerCase().trim());
-    this.setState({ searchQuery: '' });
+    handleQuery(searchQuery.toLowerCase().trim());
+     setSearchQuery('');
   },300);
     
 
-  render() {
+
     return (
       <header className={css.header}>
-        <form className={css.searchForm} onSubmit={e => this.handleSubmit(e)}>
+        <form className={css.searchForm} onSubmit={e => handleSubmit(e)}>
           <button type="submit" className={css.searchForm_button}>
           <FcGoogle size="35"/>
           </button>
@@ -43,8 +43,8 @@ export default class SearchBar extends Component {
             autoComplete="off"
             autoFocus
             placeholder="Search images and photos"
-            value={this.state.searchQuery}
-            onChange={e => this.handleInput(e)}
+            value={searchQuery}
+            onChange={e => handleInput(e)}
           />
         </form>
         <ToastContainer
@@ -62,5 +62,7 @@ export default class SearchBar extends Component {
         />
       </header>
     );
-  }
+  
 }
+
+export default SearchBar;
