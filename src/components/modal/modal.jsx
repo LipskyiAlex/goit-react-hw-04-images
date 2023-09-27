@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 const modalRoot = document.querySelector('#modal-root');
 
 class Modal extends Component {
+
+  
   componentDidMount() {
     window.addEventListener('keydown', this.keyClose);
   }
