@@ -8,17 +8,6 @@ const modalRoot = document.querySelector('#modal-root');
 const Modal = ({largeImageURL,tags,onClose}) =>  {
 
 
-
- const  keyClose = e => {
-
-    if (e.key === 'Escape') {
-  
-      onClose();
-    }
-  };
-
-
-
  const  handleClose = e => {
 
     e.stopPropagation();
@@ -31,13 +20,21 @@ const Modal = ({largeImageURL,tags,onClose}) =>  {
 
   useEffect(() => {
 
+    const  keyClose = e => {
+
+      if (e.key === 'Escape') {
+    
+        onClose();
+      }
+    };
+
     window.addEventListener('keydown',keyClose);
 
    return () => {
 
     window.removeEventListener('keydown',keyClose);
    };
-  }, [keyClose])
+  }, [onClose])
 
     return createPortal(
       <div className={css.overlay} onClick={e => handleClose(e)}>
