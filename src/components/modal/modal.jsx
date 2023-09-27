@@ -1,3 +1,4 @@
+// eslint-disable-next-line react-hooks/exhaustive-deps
 import { useEffect } from 'react';
 import css from './modal.module.css';
 import { createPortal } from 'react-dom';
