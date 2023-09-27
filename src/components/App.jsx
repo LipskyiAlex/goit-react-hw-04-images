@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';  
+import React, {useEffect, useReducer} from 'react';  
 import css from './App.module.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -9,57 +9,110 @@ import SearchBar from 'components/searchbar/searchbar';
 import ImageGallery from './imageGallery/imageGallery';
 import Loader from './loader/loader';
 import Button from './button/button';
+ 
+const Status = {
+
+  'IDLE': 'idle',
+  'PENDING': 'pending',
+  'RESOLVED': 'resolved',
+   'REJECTED': 'rejected'
+
+}
+
+function controlReducer (state,action) {
+   
+   switch(action.type) {
+
+    case 'query': 
+
+    return {...state, query: action.payload}
+
+    case 'hits': 
+
+    return {...state, hits: [...state.hits, ...action.payload]}
+
+    case 'hitsReset': 
+
+    return {...state,hits: []}
+
+    case 'totalPages': 
+
+    return {...state, totalPages: action.payload}
+
+    case 'pageCounter': 
+
+    return {...state, pageCounter: state.pageCounter + action.payload}
+
+    case 'pageCounterReset': 
+
+    return {...state, pageCounter: action.payload}
+
+    case 'status': 
+
+    return {...state, status: action.payload}
+    default: 
+
+    return state;
+   }
+
+}
+
 
 const App = () =>{
 
-     const [query,setQuery] = useState('');
-     const [hits,setHits] = useState([]);
-     const [totalPages,setTotalPages] = useState(0);
-     const [pageCounter,setPageCounter] = useState(0);
-     const [status, setStatus] = useState('idle');
+      
+   const [state,dispatch] = useReducer(controlReducer,{
+
+    query: '',
+    hits: [],
+    totalPages: 0,
+    pageCounter: 0,
+    status: Status.IDLE
+   })
 
 
      useEffect(() => {
 
-              if(query === '') {
+              if(state.query === '') {
 
                 return;
               }
-             setStatus("pending");
-             imageAPI(query,pageCounter)
+              dispatch({type: 'status', payload: Status.PENDING})
+             imageAPI(state.query,state.pageCounter)
              .then(data => {
-              setHits(hits => [...hits,...data.hits]);
-              setTotalPages(Math.ceil(data.totalHits/12));
-              setStatus('resolved');
+              dispatch({type: 'hits',payload: data.hits});
+              dispatch({type: 'totalPages', payload: Math.ceil(data.totalHits/12)});
+              dispatch({type: 'status', payload: Status.RESOLVED});
              })
              .catch(error => {
-              setStatus("rejected");
+              dispatch({type:'status', payload: Status.REJECTED});
               toast(error.message);
              })
 
-     },[query,pageCounter])
+     },[state.query,state.pageCounter])
 
 
   const handleQuery = query => {
         
-          setQuery(query);
-          setPageCounter(1);
-          setHits([]);
-  };
+          dispatch({type:'query', payload: query});
+          dispatch({type: 'pageCounterReset', payload: 1});
+          dispatch({type: 'hitsReset',payload: []});
 
+
+  }
   const loadMorePages = () => {
 
-    if (totalPages > pageCounter) {
+    if (state.totalPages > state.pageCounter) {
 
-        setStatus('pending');
-        setPageCounter(pageCounter => pageCounter + 1);
+        dispatch({type: 'status', payload:Status.PENDING});
+        dispatch({type: 'pageCounter', payload: 1})
   } else {
 
-    toast("This is all we've found");
+    toast("This is all we've found");    //Разобратсья почему не работает
   }
 }
 
-    if ((status === 'idle')) {
+    if ((state.status === Status.IDLE)) {
       return (
         <div className={css.app}>
           <SearchBar handleQuery={handleQuery} />
@@ -67,13 +120,13 @@ const App = () =>{
       );
     }
 
-    if ((status  ==='pending')) {
+    if ((state.status  ===Status.PENDING)) {
       return (
         <div className={css.app}>
           <SearchBar handleQuery={handleQuery} />
-          <ImageGallery query={query} hits={hits} />
+          <ImageGallery query={state.query} hits={state.hits} />
           <Loader />
-          {pageCounter !== totalPages ? (
+          {state.pageCounter !== state.totalPages ? (
             <Button loadMorePages={loadMorePages} />
           ) : null}
 
@@ -94,18 +147,18 @@ const App = () =>{
       );
     }
 
-    if ((status === 'resolved')) {
+    if ((state.status === Status.RESOLVED)) {
       return (
         <div className={css.app}>
           <SearchBar handleQuery={handleQuery} />
-          <ImageGallery query={query} hits={hits} />
-          {pageCounter !== totalPages ? (
+          <ImageGallery query={state.query} hits={state.hits} />
+          {state.pageCounter !== state.totalPages ? (
             <Button loadMorePages={loadMorePages} />
           ) : null}
         </div>
       );
     }
-    if ((status === 'rejected')) {
+    if ((state.status === Status.REJECTED)) {
       return (
         <div className={css.app}>
           <SearchBar handleQuery={handleQuery} />
