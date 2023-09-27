@@ -1,4 +1,4 @@
-// eslint-disable-next-line react-hooks/exhaustive-deps
+
 import { useEffect } from 'react';
 import css from './modal.module.css';
 import { createPortal } from 'react-dom';
@@ -37,7 +37,7 @@ const Modal = ({largeImageURL,tags,onClose}) =>  {
 
     window.removeEventListener('keydown',keyClose);
    };
-  }, [])
+  }, [keyClose])
 
     return createPortal(
       <div className={css.overlay} onClick={e => handleClose(e)}>
