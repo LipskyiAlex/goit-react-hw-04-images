@@ -80,6 +80,12 @@ const App = () =>{
               dispatch({type: 'status', payload: Status.PENDING})
              imageAPI(state.query,state.pageCounter)
              .then(data => {
+              if(data.hits.length === 0) {
+
+                toast("We've found nothing. Please try another query");
+                dispatch({type: 'status', payload: Status.IDLE})
+                return;
+              }
               dispatch({type: 'hits',payload: data.hits});
               dispatch({type: 'totalPages', payload: Math.ceil(data.totalHits/12)});
               dispatch({type: 'status', payload: Status.RESOLVED});
@@ -97,7 +103,7 @@ const App = () =>{
           dispatch({type:'query', payload: query});
           dispatch({type: 'pageCounterReset', payload: 1});
           dispatch({type: 'hitsReset',payload: []});
-
+          dispatch({type: 'totalPages', payload: 0})
 
   }
   const loadMorePages = () => {
@@ -126,7 +132,7 @@ const App = () =>{
           <SearchBar handleQuery={handleQuery} />
           <ImageGallery query={state.query} hits={state.hits} />
           <Loader />
-          {state.pageCounter !== state.totalPages ? (
+          {state.pageCounter !== state.totalPages && state.totalPages > 1? (
             <Button loadMorePages={loadMorePages} />
           ) : null}
 
@@ -152,7 +158,7 @@ const App = () =>{
         <div className={css.app}>
           <SearchBar handleQuery={handleQuery} />
           <ImageGallery query={state.query} hits={state.hits} />
-          {state.pageCounter !== state.totalPages ? (
+          {state.pageCounter !== state.totalPages && state.totalPages > 1 ? (
             <Button loadMorePages={loadMorePages} />
           ) : null}
         </div>
